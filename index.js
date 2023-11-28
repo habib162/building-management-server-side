@@ -31,32 +31,52 @@ async function run() {
     const apartmentCollection = client.db("buildingdb").collection("apartments");
 
 
-    app.post('/jwt',async(req,res) => {
-        const user = req.body;
-        const token = jwt.sign(user,process.env.ACCESS_TOKEN, {expiresIn: '1h'});
-        res.send({ token });
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
+      res.send({ token });
     })
 
-    app.post('/users', async (req, res) => {
-        const user = req.body;
-        const query = { email: user.email }
-        const existingUser = await userCollection.findOne(query);
-        if (existingUser) {
-          return res.send({ message: 'user already exists', insertedId: null })
+
+    // miidleware
+    const verifyToken = (req, res, next) => {
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'unauthorized access'});
+      }
+
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN,(err,decoded) => {
+        if (err) {
+          return res.status(401).send({message : 'unauthorized access'})
+          
         }
-        const result = await userCollection.insertOne(user);
-        res.send(result);
-      });
-     app.get('/users',async (req,res) => {
+        req.decoded = decoded;
+        next();
+      })
+    }
+
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email }
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: 'user already exists', insertedId: null })
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
       return res.send(result);
-     }) 
-    app.get('/apartments',async (req,res)=>{
+    });
+
+    app.get('/apartments', async (req, res) => {
       const result = await apartmentCollection.find().toArray();
       return res.send(result);
-    })  
+    })
 
-      
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -68,9 +88,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('building is running')
-  })
-  
-  app.listen(port, () => {
-    console.log(`Building management running on port ${port}`);
-  })
+  res.send('building is running')
+})
+
+app.listen(port, () => {
+  console.log(`Building management running on port ${port}`);
+})
