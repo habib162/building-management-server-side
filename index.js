@@ -28,6 +28,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const userCollection = client.db("buildingdb").collection("users");
+    const apartmentCollection = client.db("buildingdb").collection("apartments");
 
 
     app.post('/jwt',async(req,res) => {
@@ -46,6 +47,10 @@ async function run() {
         const result = await userCollection.insertOne(user);
         res.send(result);
       });
+    app.get('/apartments',async (req,res)=>{
+      const result = await apartmentCollection.find().toArray();
+      return res.send(result);
+    })  
 
       
     // Send a ping to confirm a successful connection
