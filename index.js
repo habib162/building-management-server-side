@@ -121,10 +121,21 @@ async function run() {
       console.log(currentUser.role);
       const updatedDoc = {
         $set: {
-          role: newRole
+          role: 'user'
         }
       }
       const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+    app.patch('/usersRole/admin/:email', verifyToken, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const updatedDoc = {
+        $set: {
+          role: 'member'
+        }
+      }
+      const result = await userCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
     app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
@@ -153,6 +164,23 @@ async function run() {
       }
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
+      res.send(result);
+      
+    })
+    app.get('/agreements',verifyToken,verifyAdmin, async (req, res) => {
+      const result = await cartCollection.find().toArray();
+      res.send(result);
+      
+    })
+    app.patch('/agreements/:id',verifyToken,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          status: 'checked'
+        }
+      }
+      const result = await cartCollection.updateOne(query, updatedDoc);
       res.send(result);
       
     })
