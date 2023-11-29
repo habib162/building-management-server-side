@@ -116,9 +116,6 @@ async function run() {
     app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-      const currentUser = await userCollection.findOne(filter);
-      const newRole = currentUser.role === 'user' ? 'member' : 'user';
-      console.log(currentUser.role);
       const updatedDoc = {
         $set: {
           role: 'user'
@@ -138,6 +135,18 @@ async function run() {
       const result = await userCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
+    app.patch('/usersRole/:email', verifyToken, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const updatedDoc = {
+        $set: {
+          role: 'user'
+        }
+      }
+      const result = await userCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    })
+    
     app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
