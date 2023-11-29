@@ -30,6 +30,7 @@ async function run() {
     const userCollection = client.db("buildingdb").collection("users");
     const apartmentCollection = client.db("buildingdb").collection("apartments");
     const cartCollection = client.db("buildingdb").collection("carts");
+    const announcementCollection = client.db("buildingdb").collection("announcements");
 
 
     app.post('/jwt', async (req, res) => {
@@ -101,6 +102,17 @@ async function run() {
       }
       res.send({ admin });
     })
+
+    app.get('/users/member/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      res.send(user);
+    })
+
     app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -115,7 +127,13 @@ async function run() {
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     })
-    
+    app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    })
+
     app.get('/apartments', async (req, res) => {
       const result = await apartmentCollection.find().toArray();
       return res.send(result);
@@ -127,6 +145,32 @@ async function run() {
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     })
+
+   app.get('/itemCarts/:email',verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+      
+    })
+
+   app.delete(`/itemCarts/:id`,verifyToken, async (req,res)=>{
+     const id = req.params.id;
+     const query = {_id : new ObjectId(id)};
+     const result = await cartCollection.deleteOne(query);
+     res.send(result);
+   }) 
+
+
+  //  announement
+  app.post('/announcement',async (req,res) => {
+    const item = req.body;
+    const result = await announcementCollection.insertOne(item);
+    res.send(result);
+  })
 
 
     // Send a ping to confirm a successful connection
