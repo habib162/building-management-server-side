@@ -29,6 +29,7 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("buildingdb").collection("users");
     const apartmentCollection = client.db("buildingdb").collection("apartments");
+    const cartCollection = client.db("buildingdb").collection("carts");
 
 
     app.post('/jwt', async (req, res) => {
@@ -69,7 +70,7 @@ async function run() {
     }
 
 
-    app.post('/users', verifyToken, verifyAdmin, async (req, res) => {
+    app.post('/users', async (req, res) => {
       const user = req.body;
       const query = { email: user.email }
       const existingUser = await userCollection.findOne(query);
@@ -80,14 +81,38 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users', async (req, res) => {
+    app.get('/users',  verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
       return res.send(result);
     });
 
+    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin';
+      }
+      res.send({ admin });
+    })
+
+    
     app.get('/apartments', async (req, res) => {
       const result = await apartmentCollection.find().toArray();
       return res.send(result);
+    })
+
+    // itemCards
+    app.post('/itemCards',async (req,res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
     })
 
 
