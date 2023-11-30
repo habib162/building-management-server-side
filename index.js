@@ -31,6 +31,7 @@ async function run() {
     const apartmentCollection = client.db("buildingdb").collection("apartments");
     const cartCollection = client.db("buildingdb").collection("carts");
     const announcementCollection = client.db("buildingdb").collection("announcements");
+    const faqsCollection = client.db("buildingdb").collection("faqs");
 
 
     app.post('/jwt', async (req, res) => {
@@ -156,6 +157,10 @@ async function run() {
 
     app.get('/apartments', async (req, res) => {
       const result = await apartmentCollection.find().toArray();
+      return res.send(result);
+    })
+     app.get('/faqs', async (req, res) => {
+      const result = await faqsCollection.find().toArray();
       return res.send(result);
     })
 
