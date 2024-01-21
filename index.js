@@ -125,6 +125,17 @@ async function run() {
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     })
+    app.patch('/users/member/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'member'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
     app.patch('/usersRole/admin/:email', verifyToken, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -205,6 +216,13 @@ async function run() {
      const result = await cartCollection.deleteOne(query);
      res.send(result);
    }) 
+   app.get(`/itemCarts/:id`,verifyToken, async (req,res)=>{
+    const id = req.params.id;
+    const query = {_id : new ObjectId(id)};
+    const result = await cartCollection.findOne(query);
+    console.log(result);
+    res.send(result);
+  }) 
 
 
   //  announement
